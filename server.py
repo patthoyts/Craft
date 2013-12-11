@@ -18,6 +18,7 @@ BLOCK = 'B'
 CHUNK = 'C'
 POSITION = 'P'
 DISCONNECT = 'D'
+CHAT = 'T'
 
 Session = sessionmaker(bind=create_engine(ENGINE))
 
@@ -77,6 +78,7 @@ class Model(object):
             CHUNK: self.on_chunk,
             BLOCK: self.on_block,
             POSITION: self.on_position,
+            CHAT: self.on_chat,
         }
     def start(self):
         thread = threading.Thread(target=self.run)
@@ -164,6 +166,16 @@ class Model(object):
             if other == client:
                 continue
             other.send(BLOCK, p, q, x, y, z, w)
+    def on_chat(self, client, *args):
+        message = ','.join(args)
+        log('CHAT', client.client_id, message)
+        if len(message) > 0:
+            self.send_chat(client, message)
+    def send_chat(self, client, message):
+        for other in self.clients:
+            if other == client:
+                continue
+            other.send(CHAT, client.client_id, message)
 
 def main():
     queries = [
