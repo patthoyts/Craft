@@ -6,7 +6,7 @@ add_executable(
     craft main.c client.c db.c map.c noise.c util.c
     sqlite/sqlite3.c lodepng/lodepng.c tinycthread/tinycthread.c)
 
-add_definitions(-std=c99 -O3)
+add_definitions(-std=c99 -O3 -D_POSIX_SOURCE)
 
 add_subdirectory(glfw)
 include_directories(glfw/include)

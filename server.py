@@ -7,8 +7,9 @@ import datetime
 import sys
 import threading
 import traceback
+import socket
 
-HOST = '0.0.0.0'
+HOST = ''
 PORT = 4080
 BUFFER_SIZE = 1024
 ENGINE = 'sqlite:///craft.db'
@@ -39,6 +40,7 @@ def log(*args):
 
 class Server(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
     allow_reuse_address = True
+    address_family = socket.AF_INET6
     daemon_threads = True
 
 class Handler(SocketServer.BaseRequestHandler):

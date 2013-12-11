@@ -8,6 +8,9 @@
 
 #define QUEUE_SIZE 65536
 #define BUFFER_SIZE 4096
+#ifndef NI_MAXHOST
+#define NI_MAXHOST 1025
+#endif
 
 static int client_enabled = 0;
 static int sd = 0;
@@ -137,22 +140,35 @@ void client_connect(char *hostname, int port) {
     if (!client_enabled) {
         return;
     }
-    struct hostent *host;
-    struct sockaddr_in address;
-    if ((host = gethostbyname(hostname)) == 0) {
-        perror("gethostbyname");
+
+    char serv[24];
+    struct addrinfo hints, *res = NULL, *p;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = PF_UNSPEC;
+    hints.ai_flags = AI_NUMERICSERV;
+    hints.ai_socktype = SOCK_STREAM;
+    sprintf(serv, "%d", port);
+    if (getaddrinfo(hostname, serv, &hints, &res)) {
+        perror("getaddrinfo");
         exit(1);
     }
-    memset(&address, 0, sizeof(address));
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = ((struct in_addr *)(host->h_addr_list[0]))->s_addr;
-    address.sin_port = htons(port);
-    if ((sd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
+
+    sd = -1;
+    for (p = res; p != NULL; p = p->ai_next) {
+        if ((sd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) != -1) {
+            if (connect(sd, (const struct sockaddr *)p->ai_addr, p->ai_addrlen) != -1) {
+                char name[NI_MAXHOST];
+                getnameinfo(p->ai_addr, p->ai_addrlen, name, NI_MAXHOST,
+                            NULL, 0, NI_NUMERICHOST | NI_NUMERICSERV);
+                printf("connected to %s:%d\n", name, port);
+                break;
+            }
+        }
+    }
+    freeaddrinfo(res);
+
+    if (sd == -1) {
         perror("socket");
-        exit(1);
-    }
-    if (connect(sd, (struct sockaddr *)&address, sizeof(address)) == -1) {
-        perror("connect");
         exit(1);
     }
 }
