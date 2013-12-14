@@ -4,13 +4,14 @@
 #define EMPTY_ENTRY(e) (!(e)->x && !(e)->y && !(e)->z && !(e)->w)
 
 #define MAP_FOR_EACH(map, entry) \
-    for (unsigned int i = 0; i <= map->mask; i++) { \
+    { unsigned int i; \
+    for (i = 0; i <= map->mask; i++) { \
         Entry *entry = map->data + i; \
         if (EMPTY_ENTRY(entry)) { \
             continue; \
         }
 
-#define END_MAP_FOR_EACH }
+#define END_MAP_FOR_EACH }}
 
 typedef struct {
     int x;

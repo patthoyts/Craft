@@ -45,10 +45,10 @@ int get_client_enabled() {
 }
 
 int client_sendall(int sd, char *data, int length) {
+    int count = 0;
     if (!client_enabled) {
         return 0;
     }
-    int count = 0;
     while (count < length) {
         int n = send(sd, data + count, length, 0);
         if (n == -1) {
@@ -71,11 +71,13 @@ void client_send(char *data) {
 }
 
 void client_position(float x, float y, float z, float rx, float ry) {
+    static float px, py, pz, prx, pry = 0;
+    float distance;
+    char buffer[1024];
     if (!client_enabled) {
         return;
     }
-    static float px, py, pz, prx, pry = 0;
-    float distance =
+    distance =
         (px - x) * (px - x) +
         (py - y) * (py - y) +
         (pz - z) * (pz - z) +
@@ -85,48 +87,48 @@ void client_position(float x, float y, float z, float rx, float ry) {
         return;
     }
     px = x; py = y; pz = z; prx = rx; pry = ry;
-    char buffer[1024];
     snprintf(buffer, 1024, "P,%.2f,%.2f,%.2f,%.2f,%.2f\n", x, y, z, rx, ry);
     client_send(buffer);
 }
 
 void client_chunk(int p, int q) {
+    char buffer[1024];
     if (!client_enabled) {
         return;
     }
-    char buffer[1024];
     snprintf(buffer, 1024, "C,%d,%d\n", p, q);
     client_send(buffer);
 }
 
 void client_block(int p, int q, int x, int y, int z, int w) {
+    char buffer[1024];
     if (!client_enabled) {
         return;
     }
-    char buffer[1024];
     snprintf(buffer, 1024, "B,%d,%d,%d,%d,%d,%d\n", p, q, x, y, z, w);
     client_send(buffer);
 }
 
 void client_talk(char *text) {
+    char buffer[1024];
     if (!client_enabled) {
         return;
     }
     if (strlen(text) == 0) {
         return;
     }
-    char buffer[1024];
     snprintf(buffer, 1024, "T,%s\n", text);
     client_send(buffer);
 }
 
 int client_recv(char *data, int length) {
+    int result = 0;
+    char *p;
     if (!client_enabled) {
         return 0;
     }
-    int result = 0;
     mtx_lock(&mutex);
-    char *p = strstr(recv_buffer, "\n");
+    p = strstr(recv_buffer, "\n");
     if (p) {
         *p = '\0';
         strncpy(data, recv_buffer, length);
@@ -163,11 +165,11 @@ int recv_worker(void *arg) {
 }
 
 void client_connect(char *hostname, int port) {
+    struct hostent *host;
+    struct sockaddr_in address;
     if (!client_enabled) {
         return;
     }
-    struct hostent *host;
-    struct sockaddr_in address;
     if ((host = gethostbyname(hostname)) == 0) {
         perror("gethostbyname");
         exit(1);

@@ -16,25 +16,27 @@ double rand_double() {
 }
 
 void update_fps(FPS *fps, int show) {
+    double now, elapsed;
     fps->frames++;
-    double now = glfwGetTime();
-    double elapsed = now - fps->since;
+    now = glfwGetTime();
+    elapsed = now - fps->since;
     if (elapsed >= 1) {
-        int result = fps->frames / elapsed;
         fps->frames = 0;
         fps->since = now;
         if (show) {
-            printf("%d\n", result);
+            printf("%d\n", (int)(fps->frames / elapsed));
         }
     }
 }
 
 char *load_file(const char *path) {
+    int length;
+    char *data;
     FILE *file = fopen(path, "rb");
     fseek(file, 0, SEEK_END);
-    int length = ftell(file);
+    length = ftell(file);
     rewind(file);
-    char *data = calloc(length + 1, sizeof(char));
+    data = calloc(length + 1, sizeof(char));
     fread(data, 1, length, file);
     fclose(file);
     return data;
@@ -99,15 +101,16 @@ void gen_buffers(
 }
 
 GLuint make_shader(GLenum type, const char *source) {
+    GLint status;
     GLuint shader = glCreateShader(type);
     glShaderSource(shader, 1, &source, NULL);
     glCompileShader(shader);
-    GLint status;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
     if (status == GL_FALSE) {
         GLint length;
+        GLchar *info;
         glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
-        GLchar *info = calloc(length, sizeof(GLchar));
+        info = calloc(length, sizeof(GLchar));
         glGetShaderInfoLog(shader, length, NULL, info);
         fprintf(stderr, "glCompileShader failed:\n%s\n", info);
         free(info);
@@ -123,16 +126,17 @@ GLuint load_shader(GLenum type, const char *path) {
 }
 
 GLuint make_program(GLuint shader1, GLuint shader2) {
+    GLint status;
     GLuint program = glCreateProgram();
     glAttachShader(program, shader1);
     glAttachShader(program, shader2);
     glLinkProgram(program);
-    GLint status;
     glGetProgramiv(program, GL_LINK_STATUS, &status);
     if (status == GL_FALSE) {
         GLint length;
+        GLchar *info;
         glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
-        GLchar *info = calloc(length, sizeof(GLchar));
+        info = calloc(length, sizeof(GLchar));
         glGetProgramInfoLog(program, length, NULL, info);
         fprintf(stderr, "glLinkProgram failed: %s\n", info);
         free(info);

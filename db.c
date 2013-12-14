@@ -20,9 +20,6 @@ int get_db_enabled() {
 }
 
 int db_init() {
-    if (!db_enabled) {
-        return 0;
-    }
     static const char *create_query =
         "create table if not exists state ("
         "   x float not null,"
@@ -50,6 +47,9 @@ int db_init() {
         "select x, y, z, w from block where p = ? and q = ?;";
 
     int rc;
+    if (!db_enabled) {
+        return 0;
+    }
     rc = sqlite3_open(DB_NAME, &db);
     if (rc) return rc;
     rc = sqlite3_exec(db, create_query, NULL, NULL, NULL);
@@ -71,12 +71,12 @@ void db_close() {
 }
 
 void db_save_state(float x, float y, float z, float rx, float ry) {
-    if (!db_enabled) {
-        return;
-    }
     static const char *query =
         "insert into state (x, y, z, rx, ry) values (?, ?, ?, ?, ?);";
     sqlite3_stmt *stmt;
+    if (!db_enabled) {
+        return;
+    }
     sqlite3_exec(db, "delete from state;", NULL, NULL, NULL);
     sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
     sqlite3_bind_double(stmt, 1, x);
@@ -89,13 +89,13 @@ void db_save_state(float x, float y, float z, float rx, float ry) {
 }
 
 int db_load_state(float *x, float *y, float *z, float *rx, float *ry) {
-    if (!db_enabled) {
-        return 0;
-    }
     static const char *query =
         "select x, y, z, rx, ry from state;";
     int result = 0;
     sqlite3_stmt *stmt;
+    if (!db_enabled) {
+        return 0;
+    }
     sqlite3_prepare_v2(db, query, -1, &stmt, NULL);
     if (sqlite3_step(stmt) == SQLITE_ROW) {
         *x = sqlite3_column_double(stmt, 0);

@@ -179,10 +179,10 @@ void make_plant(
     float a = 0;
     float b = s;
     float du, dv;
+    float x, y, z;
     w--;
     du = (w % 16) * s;
     dv = (w / 16 * 3) * s;
-    float x, y, z;
     x = y = z = 0;
     // left
     *(v++) = x; *(v++) = y - n; *(v++) = z - n;
@@ -260,28 +260,30 @@ void make_plant(
     *(t++) = b + du; *(t++) = a + dv;
     *(t++) = a + du; *(t++) = b + dv;
     *(t++) = b + du; *(t++) = b + dv;
-    float ma[16];
-    float mb[16];
-    mat_identity(ma);
-    mat_rotate(mb, 0, 1, 0, RADIANS(rotation));
-    mat_multiply(ma, mb, ma);
-    mat_apply(normal, ma, 24);
-    mat_translate(mb, px, py, pz);
-    mat_multiply(ma, mb, ma);
-    mat_apply(vertex, ma, 24);
+    {
+        float ma[16];
+        float mb[16];
+        mat_identity(ma);
+        mat_rotate(mb, 0, 1, 0, RADIANS(rotation));
+        mat_multiply(ma, mb, ma);
+        mat_apply(normal, ma, 24);
+        mat_translate(mb, px, py, pz);
+        mat_multiply(ma, mb, ma);
+        mat_apply(vertex, ma, 24);
+    }
 }
 
 void make_player(
     float *vertex, float *normal, float *texture,
     float x, float y, float z, float rx, float ry)
 {
+    float ma[16];
+    float mb[16];
     make_cube_faces(
         vertex, normal, texture,
         1, 1, 1, 1, 1, 1,
         226, 224, 241, 209, 225, 227,
         0, 0, 0, 0.4);
-    float ma[16];
-    float mb[16];
     mat_identity(ma);
     mat_rotate(mb, 0, 1, 0, rx);
     mat_multiply(ma, mb, ma);

@@ -46,10 +46,11 @@ void mat_translate(float *matrix, float dx, float dy, float dz) {
 }
 
 void mat_rotate(float *matrix, float x, float y, float z, float angle) {
+    float s, c, m;
     normalize(&x, &y, &z);
-    float s = sinf(angle);
-    float c = cosf(angle);
-    float m = 1 - c;
+    s = sinf(angle);
+    c = cosf(angle);
+    m = 1 - c;
     matrix[0] = m * x * x + c;
     matrix[1] = m * x * y - z * s;
     matrix[2] = m * z * x + y * s;
@@ -70,27 +71,31 @@ void mat_rotate(float *matrix, float x, float y, float z, float angle) {
 
 void mat_vec_multiply(float *vector, float *a, float *b) {
     float result[4];
-    for (int i = 0; i < 4; i++) {
+    int i;
+    for (i = 0; i < 4; i++) {
         float total = 0;
-        for (int j = 0; j < 4; j++) {
+        int j;
+        for (j = 0; j < 4; j++) {
             int p = j * 4 + i;
             int q = j;
             total += a[p] * b[q];
         }
         result[i] = total;
     }
-    for (int i = 0; i < 4; i++) {
+    for (i = 0; i < 4; i++) {
         vector[i] = result[i];
     }
 }
 
 void mat_multiply(float *matrix, float *a, float *b) {
     float result[16];
-    for (int c = 0; c < 4; c++) {
-        for (int r = 0; r < 4; r++) {
+    int c, i;
+    for (c = 0; c < 4; c++) {
+        int r;
+        for (r = 0; r < 4; r++) {
             int index = c * 4 + r;
             float total = 0;
-            for (int i = 0; i < 4; i++) {
+            for (i = 0; i < 4; i++) {
                 int p = i * 4 + r;
                 int q = c * 4 + i;
                 total += a[p] * b[q];
@@ -98,14 +103,15 @@ void mat_multiply(float *matrix, float *a, float *b) {
             result[index] = total;
         }
     }
-    for (int i = 0; i < 16; i++) {
+    for (i = 0; i < 16; i++) {
         matrix[i] = result[i];
     }
 }
 
 void mat_apply(float *data, float *matrix, int count) {
     float vec[4] = {0, 0, 0, 1};
-    for (int i = 0; i < count; i++) {
+    int i;
+    for (i = 0; i < count; i++) {
         float *d = data + i * 3;
         vec[0] = *(d++); vec[1] = *(d++); vec[2] = *(d++);
         mat_vec_multiply(vec, matrix, vec);
